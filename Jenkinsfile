@@ -1,67 +1,57 @@
-pipeline{
+pipeline {
     agent any
-    stages{
-        stage(checkout){
-            steps{
-                echo "checking out the code from git"
-                 checkout scm
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
             }
         }
-        stage(build){
-            steps{
-                echo "building the code"
+
+        stage('Build') {
+            steps {
                 sh '''
-                test -f index.html
-                test -f style.css
-                test -f script.js
-                '''
-            }
-        }
-        stage(test){
-        steps{
-        echo "testing the code"
-        sh '''
-        grep -q "<h1>" index.html
-        grep -q "<p>" index.html
-        grep -q "color:navy" style.css
-        grep -q "text-transform:uppercase" style.css
-        grep -q "text-decoration:underline" style.css
-        grep -q "color:gray" style.css
-        grep -q "console.log" script.js
-        '''
-        }
-        }
-        stage(package){
-            steps{
-                echo "packaging the code"
-                sh '''
-                tar -cvf code.tar index.html style.css script.js
-                '''
-            }
-        }
-        stage(deploy){
-            steps{
-                echo "deploying the code"
-                sh '''
-                mkdir -p /var/www/html
-                cp code.tar /var/www/html/
-                cd /var/www/html/
-                tar -xvf code.tar
+                    test -f index.html
+                    test -f style.css
+                    test -f script.js
+                    test -f Dockerfile
                 '''
             }
         }
 
+        stage('Test') {
+            steps {
+                sh '''
+                    grep -q '<h1>' index.html
+                    grep -q '<p' index.html
+                    grep -q '<form' index.html
+                    grep -q 'color:navy' style.css
+                    grep -q 'text-transform:uppercase' style.css
+                    grep -q 'text-decoration:underline' style.css
+                    grep -q 'color:gray' style.css
+                    grep -q 'function handleSubmit' script.js
+                    grep -q 'preventDefault' script.js
+                '''
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'tar -czf devops-app.tar.gz index.html style.css script.js Dockerfile'
+                archiveArtifacts artifacts: 'devops-app.tar.gz', fingerprint: true
+            }
+        }
     }
-    post{
-        always{
-            echo "Cleaning up the workspace"
+
+    post {
+        always {
             cleanWs()
         }
-        success{
-            echo "Build and deployment successful"
+        success {
+            echo 'Build and packaging successful'
         }
-        failure{
-            echo "Build or deployment failed"
+        failure {
+            echo 'Build or packaging failed'
         }
     }
 }
