@@ -1,0 +1,36 @@
+name: Build application
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test application
+        run: |
+          test -f index.html
+          test -f style.css
+          test -f script.js
+          test -f Dockerfile
+          grep -q '<h1>' index.html
+          grep -q '<p' index.html
+          grep -q '<form' index.html
+          grep -q 'color:navy' style.css
+          grep -q 'text-transform:uppercase' style.css
+          grep -q 'text-decoration:underline' style.css
+          grep -q 'color:gray' style.css
+          grep -q 'function handleSubmit' script.js
+          grep -q 'preventDefault' script.js
+
+      - name: Build Docker image
+        run: docker build -t devops-app:${{ github.sha }} .
