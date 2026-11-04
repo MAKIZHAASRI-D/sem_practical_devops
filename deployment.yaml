@@ -14,6 +14,7 @@ spec:
     spec:
       containers:
       - name: my-container
-        image: nginx:alpine
+        image: devops-app:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
